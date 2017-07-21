@@ -22,7 +22,7 @@ namespace NuKeeper
             }
 
             var lookups = new PackageUpdatesLookup(new ApiPackageLookup());
-            var github = new GithubClient(settings);
+            IGithub github = new GithubClient(settings);
 
             var repositoryDiscovery = new GithubRepositoryDiscovery(github, settings);
             var updateSelection = new PackageUpdateSelection(settings.MaxPullRequestsPerRepository);
