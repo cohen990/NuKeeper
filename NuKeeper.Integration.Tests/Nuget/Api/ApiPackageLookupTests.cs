@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NuKeeper.NuGet.Api;
+using NuKeeper.ProcessRunner;
 using NUnit.Framework;
 
 namespace NuKeeper.Integration.Tests.Nuget.Api
@@ -11,7 +12,7 @@ namespace NuKeeper.Integration.Tests.Nuget.Api
         [Test]
         public async Task UnknownPackageName_ShouldNotReturnResult()
         {
-            IApiPackageLookup lookup = new ApiPackageLookup();
+            IApiPackageLookup lookup = new ApiPackageLookup(new ConsoleLogger());
 
             var package = await lookup.LookupLatest(Guid.NewGuid().ToString());
 
@@ -21,7 +22,7 @@ namespace NuKeeper.Integration.Tests.Nuget.Api
         [Test]
         public async Task WellKnownPackageName_ShouldReturnResult()
         {
-            IApiPackageLookup lookup = new ApiPackageLookup();
+            IApiPackageLookup lookup = new ApiPackageLookup(new ConsoleLogger());
 
             var package = await lookup.LookupLatest("Newtonsoft.Json");
 
@@ -33,7 +34,7 @@ namespace NuKeeper.Integration.Tests.Nuget.Api
         [Test]
         public async Task AmbigousPackageName_ShouldReturnCorrectResult()
         {
-            IApiPackageLookup lookup = new ApiPackageLookup();
+            IApiPackageLookup lookup = new ApiPackageLookup(new ConsoleLogger());
 
             var package = await lookup.LookupLatest("AWSSDK");
 
