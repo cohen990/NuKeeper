@@ -8,6 +8,7 @@ using NuKeeper.Github;
 using NuKeeper.Github.Models;
 using NuKeeper.NuGet.Api;
 using NuKeeper.NuGet.Process;
+using NuKeeper.ProcessRunner;
 using NuKeeper.RepositoryInspection;
 
 namespace NuKeeper.Engine
@@ -20,12 +21,16 @@ namespace NuKeeper.Engine
         private readonly IGithub _github;
         private readonly IGitDriver _git;
         private readonly IPackageUpdateSelection _updateSelection;
+        private readonly IRepositoryScanner _repositoryScanner;
+        private readonly IExternalProcess _externalProcess;
 
         public RepositoryUpdater(IPackageUpdatesLookup packageLookup, 
             IGithub github,
             IGitDriver git,
             string tempDir,
             IPackageUpdateSelection updateSelection,
+            IRepositoryScanner repositoryScanner,
+            IExternalProcess externalProcess,
             RepositoryModeSettings settings)
         {
             _packageLookup = packageLookup;
@@ -33,6 +38,8 @@ namespace NuKeeper.Engine
             _git = git;
             _tempDir = tempDir;
             _updateSelection = updateSelection;
+            _repositoryScanner = repositoryScanner;
+            _externalProcess = externalProcess;
             _settings = settings;
         }
 
@@ -42,8 +49,7 @@ namespace NuKeeper.Engine
             var defaultBranch = _git.GetCurrentHead();
 
             // scan for nuget packages
-            var repoScanner = new RepositoryScanner();
-            var packages = repoScanner.FindAllNuGetPackages(_tempDir)
+            var packages = _repositoryScanner.FindAllNuGetPackages(_tempDir)
                 .ToList();
 
             EngineReport.PackagesFound(packages);
@@ -115,13 +121,13 @@ namespace NuKeeper.Engine
             }
         }
 
-        private static async Task UpdateAllCurrentUsages(PackageUpdateSet updateSet)
+        private async Task UpdateAllCurrentUsages(PackageUpdateSet updateSet)
         {
             foreach (var current in updateSet.CurrentPackages)
             {
                 var updater = current.Path.PackageReferenceType == PackageReferenceType.ProjectFile
-                    ? (INuGetUpdater) new NuGetUpdater()
-                    : new PackagesConfigUpdater();
+                    ? (INuGetUpdater) new NuGetUpdater(_externalProcess)
+                    : new PackagesConfigUpdater(_externalProcess);
 
                 await updater.UpdatePackage(updateSet.NewVersion, current);
             }

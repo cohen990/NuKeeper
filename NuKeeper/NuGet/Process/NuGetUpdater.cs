@@ -10,9 +10,9 @@ namespace NuKeeper.NuGet.Process
     {
         private readonly IExternalProcess _externalProcess;
 
-        public NuGetUpdater(IExternalProcess externalProcess = null)
+        public NuGetUpdater(IExternalProcess externalProcess)
         {
-            _externalProcess = externalProcess ?? new ExternalProcess();
+            _externalProcess = externalProcess;
         }
 
         public async Task UpdatePackage(NuGetVersion newVersion, PackageInProject currentPackage)
